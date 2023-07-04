@@ -11,17 +11,6 @@ CORS(app)
 def get_members():
     return {'members': ['Member1', 'Member2', 'Member3']}
 
-# define the countup func.
-def countupwards():
-    while True:
-        for auction in auctions:
-            endTime = int(auction['endTime'])
-            endTime -= 1
-            auction['endTime'] = str(endTime)
-            if endTime <= 0:
-                auctions.remove(auction)
-        time.sleep(1)
-
 class Bid(object):
     def __init__(self, itemName, itemCode, clientName, price):
         self.itemName = itemName
@@ -105,13 +94,17 @@ class Cliente(object):
     def addBid(self, auctionName, auctionCode, price):
         
         newBid = {
-            "Nome": auctionName,
-            "Código": auctionCode,
-            "Lance": price,
+            "code": auctionCode,
+            "name": auctionName,
+            "price": price,
         }
 
         self.bids.append(newBid)
-    
+
+    def getBids(self):
+        print(self.bids)
+        return self.bids
+
 
 auctions = []
 
@@ -127,6 +120,8 @@ def add_bid(clientName, auctionCode, price):
     for client in client_list:
         if client.getName() == clientName:
             client.addBid(auctionName, auctionCode, price)
+    
+    print (client_list)
 
 @app.route('/create_auction', methods=['POST'])
 def create_auction():
@@ -185,6 +180,21 @@ def login():
             return jsonify(success=True), 200
     return jsonify(success=False, res_code=500, message='Client not found'), 200
 
+@app.route('/bids', methods=['POST'])
+def get_bids():
+    data = request.get_json()
+    nomeCliente = data['nomeCliente']
+
+    for client in client_list:
+        if client.getName() == nomeCliente:
+            clientBids = client.getBids()
+            if clientBids == []:
+                return jsonify(bids=None), 200
+            return jsonify(bids=clientBids), 200
+
+    return jsonify(bids=None), 200
+
+
 @app.route('/auctions', methods=['GET'])
 def show_auctions():
     auction_list = []
@@ -195,29 +205,20 @@ def show_auctions():
             auction_list.append(auction.getAuctionJson())
         return jsonify(auction_list), 200
 
-@app.route('/bids', methods=['POST'])
-def get_bids():
-    data = request.get_json()
-    clientName = data['clientName']
-
-    for client in client_list:
-        if client.getName() == clientName:
-            clientBids = client.getBids()
-            if clientBids == []:
-                return jsonify(bids=None), 200
-            return jsonify(bids=clientBids), 200
-
-    return jsonify(bids=None), 200
 
 def count_upwards():
     t = 1
     while t:
+        # TODO: verificar se precisa disso
         for i in range(len(auctions)-1, -1, -1):
-            if auctions[i].endTime == 0:
+            endTime = int(auctions[i].endTime)
+            if endTime == 0:
                 auctions.pop(i)
                 print("An auction has finished!")
         for auction in auctions:
-            auction.endTime -= 1
+            endTime = int(auction.endTime)
+            endTime -= 1
+            auction.endTime = str(endTime)
         time.sleep(1)
 
 
