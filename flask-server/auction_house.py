@@ -1,10 +1,10 @@
 from flask import Flask, request, jsonify
 import time
 import threading
-# from flask_cors import CORS
+from flask_cors import CORS
 
 app = Flask(__name__)
-# CORS(app)
+CORS(app)
 
 # Members API Route
 @app.route('/members')
@@ -15,8 +15,10 @@ def get_members():
 def countupwards():
     while True:
         for auction in auctions:
-            auction['endTime'] -= 1
-            if auction['endTime'] <= 0:
+            endTime = int(auction['endTime'])
+            endTime -= 1
+            auction['endTime'] = str(endTime)
+            if endTime <= 0:
                 auctions.remove(auction)
         time.sleep(1)
 
@@ -83,10 +85,10 @@ class Auction(object):
     
     def getAuctionJson(self):
         return {
-            "Código": self.code,
-            "Nome": self.name,
-            "Lance atual": self.currentBid,
-            "Tempo restante": self.endTime,
+            "code": self.code,
+            "name": self.name,
+            "currentBid": self.currentBid,
+            "remainingTime": self.endTime,
         }
 
 class Cliente(object):
@@ -131,7 +133,7 @@ def create_auction():
     data = request.get_json()
     clientName = data['clientName']
     code = data['code']
-    name = data['name']
+    name = data['auctionName']
     description = data['description']
     initialPrice = data['initialPrice']
     endTime = data['endTime']
