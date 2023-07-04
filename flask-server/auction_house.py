@@ -163,6 +163,7 @@ def bid_auction():
 @app.route('/register', methods=['POST'])
 def register():
     data = request.get_json()
+    print(data)
     nomeCliente = data['nomeCliente']
 
     for client in client_list:
